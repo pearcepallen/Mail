@@ -62,6 +62,14 @@ function load_mailbox(mailbox) {
   .then(email => {
     //Print email
     console.log(email);
+
+    for(x of email){
+      document.querySelector('#sender').innerHTML = `${x.sender}`;
+      document.querySelector('#subject').innerHTML = `${x.subject}`;
+      document.querySelector('#time').innerHTML = `${x.timestamp}`;
+      console.log(X);
+    }
+
   });
 
 }
