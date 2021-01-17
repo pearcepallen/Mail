@@ -10,7 +10,10 @@ document.addEventListener('DOMContentLoaded', function() {
   //By default, load the inbox
   load_mailbox('inbox');
 
-  // Post Mail API 
+  //Get Inbix
+
+
+  // Send Mail API 
   document.querySelector('#compose-form').addEventListener('submit', (event) => {
     event.preventDefault()
     fetch('/emails', {
@@ -27,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(result);
         load_mailbox('sent');
     });
-    return false;
   });
 
 });
@@ -54,4 +56,12 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(email => {
+    //Print email
+    console.log(email);
+  });
+
 }
