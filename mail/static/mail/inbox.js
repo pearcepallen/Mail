@@ -61,18 +61,47 @@ function load_mailbox(mailbox) {
 
   const container = document.querySelector('#mailbox');
   container.innerHTML = "";
+  document.querySelector('#view-mail').innerHTML = " ";
 
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(email => {
-    //Print email
-    //console.log(email);
-    for(x of email){
-      container.innerHTML += ('<div class="mail">' + '<div class="sender">' + `${x.sender}` + '</div>' 
-                              + '<div class="subject">' + `${x.subject}` + '</div>' 
-                              + '<div class="time">' + `${x.timestamp}` + '</div>' + '</div>');
-    }
+    email.forEach(x => {
+      const element = document.createElement('div');
+      element.className = "mail"
+      element.innerHTML = ('<div class="sender">' + `${x.sender}` + '</div>' 
+                          + '<div class="subject">' + `${x.subject}` + '</div>' 
+                          + '<div class="time">' + `${x.timestamp}` + '</div>');
+      
+      element.addEventListener('click', function() {
+        fetch(`/emails/${x.id}`)
+          .then(response => response.json())
+          .then(mail => {
+            const mail_info = document.createElement('div');
+            mail_info.innerHTML = ('<div>' + `From: ${mail.sender}` + '</div>' 
+                                + '<div>' + `To: ${mail.recipients}` + '</div>' 
+                                + '<div>' + `Subject: ${mail.subject}` + '</div>'
+                                + '<div>' + `Timestamp: ${mail.timestamp}` + '</div>');
+            document.querySelector('#view-mail').append(mail_info);
 
+            const message = document.createElement('p');
+            message.innerHTML = `${mail.body}`;
+            document.querySelector('#view-mail').append(message);
+
+            fetch(`/emails/${mail.id}`, {
+              method: 'PUT',
+              body: JSON.stringify({
+                  read: true
+              })
+            })
+
+          })
+        document.querySelector('#mailbox').style.display = 'none';
+        document.querySelector('#view-mail').style.display = 'block';
+      });
+
+      container.append(element);
+    })
   });
 
 }
