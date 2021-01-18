@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
   //By default, load the inbox
   load_mailbox('inbox');
 
-  //Get Inbix
-
-
   // Send Mail API 
   document.querySelector('#compose-form').addEventListener('submit', (event) => {
     event.preventDefault()
@@ -41,6 +38,7 @@ function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#mailbox').style.display = 'none';
+  document.querySelector('#view-mail').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
@@ -59,10 +57,12 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
+  // Clear divs before loading 
   const container = document.querySelector('#mailbox');
   container.innerHTML = "";
   document.querySelector('#view-mail').innerHTML = " ";
 
+  //Load mails from JSON
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(email => {
@@ -72,6 +72,11 @@ function load_mailbox(mailbox) {
       element.innerHTML = ('<div class="sender">' + `${x.sender}` + '</div>' 
                           + '<div class="subject">' + `${x.subject}` + '</div>' 
                           + '<div class="time">' + `${x.timestamp}` + '</div>');
+
+      if (x.read == true)
+      {
+        element.style.backgroundColor = "gray";
+      }
       
       element.addEventListener('click', function() {
         fetch(`/emails/${x.id}`)
