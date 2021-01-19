@@ -2,10 +2,15 @@ textarea {
     min-height: 400px;
 }
 
+p {
+    margin-top: 20px;
+    border-top: 1px solid whitesmoke;
+}
+
 .mail {
     display: flex;
     border: 2px solid black;
-    
+    padding: 3px 3px 3px 3px;
 }
 
 .sender{
