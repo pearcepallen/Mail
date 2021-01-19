@@ -47,6 +47,8 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
+
+
 function load_mailbox(mailbox) {
   
   // Show the mailbox and hide other views
@@ -60,7 +62,7 @@ function load_mailbox(mailbox) {
   // Clear divs before loading 
   const container = document.querySelector('#mailbox');
   container.innerHTML = "";
-  document.querySelector('#view-mail').innerHTML = " ";
+  document.querySelector('#view-mail').innerHTML = "";
 
   //Load mails from JSON
   fetch(`/emails/${mailbox}`)
@@ -90,37 +92,58 @@ function load_mailbox(mailbox) {
             document.querySelector('#view-mail').append(mail_info);
             
             //archive button function 
-            const archive = document.createElement('button');
-            archive.className = "btn btn-sm btn-outline-primary";
-            if(mail.archived == false)
+            if (mailbox != 'sent')
             {
-              archive.innerHTML = "Archive";
-            }
-            else{
-              archive.innerHTML = "Unarchive";
-            }
-            archive.addEventListener('click', function(){
+              const archive = document.createElement('button');
+              archive.className = "btn btn-sm btn-outline-primary";
               if(mail.archived == false)
               {
-                fetch(`/emails/${mail.id}`, {
-                  method: 'PUT',
-                  body: JSON.stringify({
-                      archived: true
-                  })
-                })
+                archive.innerHTML = "Archive";
               }
-              else {
-                fetch(`/emails/${mail.id}`, {
-                  method: 'PUT',
-                  body: JSON.stringify({
-                      archived: false
-                  })
-                })
+              else{
+                archive.innerHTML = "Unarchive";
               }
-              load_mailbox('inbox');
+              archive.addEventListener('click', function(){
+                if(mail.archived == false)
+                {
+                  fetch(`/emails/${mail.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        archived: true
+                    })
+                  })
+                }
+                else {
+                  fetch(`/emails/${mail.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        archived: false
+                    })
+                  })
+                }
+                load_mailbox('inbox'); // find way to make inbox update itself
+              })
+              document.querySelector('#view-mail').append(archive);
+            }
+            
+            //Reply button function
+            const reply = document.createElement('button');
+            reply.className = "btn btn-sm btn-outline-primary";
+            reply.innerHTML = "Reply";
+            reply.addEventListener('click', function(){
+              compose_email();
+              document.querySelector('#compose-recipients').value = `${mail.sender}`;
+              if(mail.subject.includes("Re:"))
+              {
+                document.querySelector('#compose-subject').value = `${mail.subject}`;
+              }
+              else{
+                document.querySelector('#compose-subject').value = `Re: ${mail.subject}`;
+              } 
+              document.querySelector('#compose-body').value = `On ${mail.timestamp} ${mail.sender} wrote : ${mail.body}`; 
             })
-            document.querySelector('#view-mail').append(archive);
-
+            document.querySelector('#view-mail').append(reply);
+          
 
             const message = document.createElement('p');
             message.innerHTML = `${mail.body}`;
