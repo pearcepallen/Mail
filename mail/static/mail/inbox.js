@@ -47,8 +47,6 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
-
-
 function load_mailbox(mailbox) {
   
   // Show the mailbox and hide other views
@@ -62,7 +60,8 @@ function load_mailbox(mailbox) {
   // Clear divs before loading 
   const container = document.querySelector('#mailbox');
   container.innerHTML = "";
-  document.querySelector('#view-mail').innerHTML = "";
+  const mailview = document.querySelector('#view-mail');
+  mailview.innerHTML = "";
 
   //Load mails from JSON
   fetch(`/emails/${mailbox}`)
@@ -76,69 +75,75 @@ function load_mailbox(mailbox) {
                           + '<div class="time">' + `${x.timestamp}` + '</div>');
       element.style.backgroundColor = (x.read == true) ? "gray" : "white";
       
-      //OnClick for individual email
+      //OnClick for each email
       element.addEventListener('click', function() {
         fetch(`/emails/${x.id}`)
-          .then(response => response.json())
-          .then(mail => {
-            const mail_info = document.createElement('div');
-            mail_info.innerHTML = ('<div>' + `From: ${mail.sender}` + '</div>' 
-                                + '<div>' + `To: ${mail.recipients}` + '</div>' 
-                                + '<div>' + `Subject: ${mail.subject}` + '</div>'
-                                + '<div>' + `Timestamp: ${mail.timestamp}` + '</div>');
-            document.querySelector('#view-mail').append(mail_info);
-            
-            //archive button function 
-            if (mailbox != 'sent')
-            {
-              const archive = document.createElement('button');
-              archive.className = "btn btn-sm btn-outline-primary";
-              archive.innerHTML = (mail.archived) ? 'Unarchive' : 'Archive';  //ternary operator similar to if else
-              archive.addEventListener('click', function(){
-                fetch(`/emails/${mail.id}`, {
-                  method: 'PUT',
-                  body: JSON.stringify({
-                      archived: !mail.archived
-                  })
-                })
-                .then( () => {
-                  load_mailbox('inbox');
-                });
-              })
-              document.querySelector('#view-mail').append(archive);
-            }
-            
-            //Reply button function
-            const reply = document.createElement('button');
-            reply.className = "btn btn-sm btn-outline-primary";
-            reply.innerHTML = "Reply";
-            reply.addEventListener('click', function(){
-              compose_email();
-              document.querySelector('#compose-recipients').value = `${mail.sender}`;
-              document.querySelector('#compose-subject').value = (mail.subject.includes("Re:")) ? `${mail.subject}` : `Re: ${mail.subject}`;
-              document.querySelector('#compose-body').value = `On ${mail.timestamp} ${mail.sender} wrote : ${mail.body}`; 
-            })
-            document.querySelector('#view-mail').append(reply);
+        .then(response => response.json())
+        .then(mail => {
           
-
-            const message = document.createElement('p');
-            message.innerHTML = `${mail.body}`;
-            document.querySelector('#view-mail').append(message);
-
-            //mark email as read
-            fetch(`/emails/${mail.id}`, {
-              method: 'PUT',
-              body: JSON.stringify({
-                  read: true
+          //Mail General Info
+          const mail_info = document.createElement('div');
+          mail_info.innerHTML = ('<div>' + `From: ${mail.sender}` + '</div>' 
+                              + '<div>' + `To: ${mail.recipients}` + '</div>' 
+                              + '<div>' + `Subject: ${mail.subject}` + '</div>'
+                              + '<div>' + `Timestamp: ${mail.timestamp}` + '</div>');
+          mailview.append(mail_info);
+          
+          //archive button function 
+          if (mailbox != 'sent')
+          {
+            const archive = document.createElement('button');
+            archive.className = "btn btn-sm btn-outline-primary";
+            archive.innerHTML = (mail.archived) ? 'Unarchive' : 'Archive';  //ternary operator similar to if else
+            archive.addEventListener('click', function(){
+              fetch(`/emails/${mail.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    archived: !mail.archived
+                })
               })
+              .then( () => {
+                load_mailbox('inbox');
+              });
             })
-
+            mailview.append(archive);
+          }
+          
+          //Reply button function
+          const reply = document.createElement('button');
+          reply.className = "btn btn-sm btn-outline-primary";
+          reply.innerHTML = "Reply";
+          reply.addEventListener('click', function(){
+            compose_email();
+            //Pre-fill Compose Email fields
+            document.querySelector('#compose-recipients').value = `${mail.sender}`;
+            document.querySelector('#compose-subject').value = (mail.subject.includes("Re:")) ? `${mail.subject}` : `Re: ${mail.subject}`;
+            document.querySelector('#compose-body').value = `"On ${mail.timestamp} ${mail.sender} wrote : ${mail.body}"`; 
           })
-        document.querySelector('#mailbox').style.display = 'none';
-        document.querySelector('#view-mail').style.display = 'block';
+          mailview.append(reply);
+        
+          //Body of email
+          const message = document.createElement('p');
+          message.innerHTML = `${mail.body}`;
+          mailview.append(message);
+
+          //Mark email as read
+          fetch(`/emails/${mail.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                read: true
+            })
+          })
+
+        })
+        container.style.display = 'none';
+        mailview.style.display = 'block';
       });
-      container.append(element);
+
+      container.append(element); //add individual element along with specific functionality to email list
+
     })
+
   });
 
 }
