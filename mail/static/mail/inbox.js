@@ -72,12 +72,12 @@ function load_mailbox(mailbox) {
       element.innerHTML = ('<div class="sender">' + `${x.sender}` + '</div>' 
                           + '<div class="subject">' + `${x.subject}` + '</div>' 
                           + '<div class="time">' + `${x.timestamp}` + '</div>');
-
       if (x.read == true)
       {
         element.style.backgroundColor = "gray";
       }
       
+      //OnClick for each email
       element.addEventListener('click', function() {
         fetch(`/emails/${x.id}`)
           .then(response => response.json())
@@ -88,11 +88,45 @@ function load_mailbox(mailbox) {
                                 + '<div>' + `Subject: ${mail.subject}` + '</div>'
                                 + '<div>' + `Timestamp: ${mail.timestamp}` + '</div>');
             document.querySelector('#view-mail').append(mail_info);
+            
+            //archive button function 
+            const archive = document.createElement('button');
+            archive.className = "btn btn-sm btn-outline-primary";
+            if(mail.archived == false)
+            {
+              archive.innerHTML = "Archive";
+            }
+            else{
+              archive.innerHTML = "Unarchive";
+            }
+            archive.addEventListener('click', function(){
+              if(mail.archived == false)
+              {
+                fetch(`/emails/${mail.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                      archived: true
+                  })
+                })
+              }
+              else {
+                fetch(`/emails/${mail.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                      archived: false
+                  })
+                })
+              }
+              load_mailbox('inbox');
+            })
+            document.querySelector('#view-mail').append(archive);
+
 
             const message = document.createElement('p');
             message.innerHTML = `${mail.body}`;
             document.querySelector('#view-mail').append(message);
 
+            //mark email as read
             fetch(`/emails/${mail.id}`, {
               method: 'PUT',
               body: JSON.stringify({
@@ -104,7 +138,6 @@ function load_mailbox(mailbox) {
         document.querySelector('#mailbox').style.display = 'none';
         document.querySelector('#view-mail').style.display = 'block';
       });
-
       container.append(element);
     })
   });
