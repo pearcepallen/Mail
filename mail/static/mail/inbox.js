@@ -74,12 +74,9 @@ function load_mailbox(mailbox) {
       element.innerHTML = ('<div class="sender">' + `${x.sender}` + '</div>' 
                           + '<div class="subject">' + `${x.subject}` + '</div>' 
                           + '<div class="time">' + `${x.timestamp}` + '</div>');
-      if (x.read == true)
-      {
-        element.style.backgroundColor = "gray";
-      }
+      element.style.backgroundColor = (x.read == true) ? "gray" : "white";
       
-      //OnClick for each email
+      //OnClick for individual email
       element.addEventListener('click', function() {
         fetch(`/emails/${x.id}`)
           .then(response => response.json())
@@ -96,32 +93,17 @@ function load_mailbox(mailbox) {
             {
               const archive = document.createElement('button');
               archive.className = "btn btn-sm btn-outline-primary";
-              if(mail.archived == false)
-              {
-                archive.innerHTML = "Archive";
-              }
-              else{
-                archive.innerHTML = "Unarchive";
-              }
+              archive.innerHTML = (mail.archived) ? 'Unarchive' : 'Archive';  //ternary operator similar to if else
               archive.addEventListener('click', function(){
-                if(mail.archived == false)
-                {
-                  fetch(`/emails/${mail.id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        archived: true
-                    })
+                fetch(`/emails/${mail.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                      archived: !mail.archived
                   })
-                }
-                else {
-                  fetch(`/emails/${mail.id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        archived: false
-                    })
-                  })
-                }
-                load_mailbox('inbox'); // find way to make inbox update itself
+                })
+                .then( () => {
+                  load_mailbox('inbox');
+                });
               })
               document.querySelector('#view-mail').append(archive);
             }
@@ -133,13 +115,7 @@ function load_mailbox(mailbox) {
             reply.addEventListener('click', function(){
               compose_email();
               document.querySelector('#compose-recipients').value = `${mail.sender}`;
-              if(mail.subject.includes("Re:"))
-              {
-                document.querySelector('#compose-subject').value = `${mail.subject}`;
-              }
-              else{
-                document.querySelector('#compose-subject').value = `Re: ${mail.subject}`;
-              } 
+              document.querySelector('#compose-subject').value = (mail.subject.includes("Re:")) ? `${mail.subject}` : `Re: ${mail.subject}`;
               document.querySelector('#compose-body').value = `On ${mail.timestamp} ${mail.sender} wrote : ${mail.body}`; 
             })
             document.querySelector('#view-mail').append(reply);
