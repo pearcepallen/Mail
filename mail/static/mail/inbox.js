@@ -125,6 +125,7 @@ function load_mailbox(mailbox) {
           //Body of email
           const message = document.createElement('p');
           message.innerHTML = `${mail.body}`;
+          message.innerHTML = message.innerHTML.replace(/\n/g, "<br>"); //changes \n (new line) to <br>
           mailview.append(message);
 
           //Mark email as read
